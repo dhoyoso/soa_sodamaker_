@@ -1,19 +1,32 @@
+// components/header.tsx
+"use client";
+
+import { ShoppingBag } from "lucide-react";
+import { useCartStore } from "@/store/cart-store";
+import Link from "next/link";
+
 export default function Header() {
+  const { openCart, getTotalItems } = useCartStore();
+  const totalItems = getTotalItems();
+
   return (
-    <header className="border-b">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="text-2xl font-bold">SOA Soda Maker</div>
-        <nav className="flex gap-6">
-          <a href="#" className="hover:text-primary transition-colors">
-            Home
-          </a>
-          <a href="#" className="hover:text-primary transition-colors">
-            Products
-          </a>
-          <a href="#" className="hover:text-primary transition-colors">
-            Contact
-          </a>
-        </nav>
+    <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur-sm">
+      <div className="container mx-auto flex h-16 items-center justify-between px-6">
+        <Link href="/" className="text-2xl font-bold text-teal-900">
+          SOA Soda Maker
+        </Link>
+        <button
+          onClick={openCart}
+          className="relative rounded-full p-2 transition-colors hover:bg-gray-100"
+          aria-label="Open cart"
+        >
+          <ShoppingBag className="h-6 w-6" />
+          {totalItems > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-black">
+              {totalItems}
+            </span>
+          )}
+        </button>
       </div>
     </header>
   );
