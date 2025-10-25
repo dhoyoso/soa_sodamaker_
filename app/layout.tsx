@@ -1,6 +1,11 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Providers } from "./providers";
+import Header from "@/components/header";
+import { CartSheet } from "@/components/cart-sheet";
+import { cn } from "@/lib/utils";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -14,8 +19,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "SOA Soda Maker - Make Your Own Refreshing Beverages",
-  description: "The official marketing landing page for SOA Soda Maker. Discover our amazing soda makers and create your own refreshing beverages at home.",
+  title: "SOA Soda Maker - If you have water, you have soda.",
+  description: "Transform plain water into delicious soda in seconds.",
 };
 
 export default function RootLayout({
@@ -26,9 +31,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={cn(
+          "antialiased",
+          geistSans.variable, 
+          geistMono.variable
+        )}
       >
-        {children}
+        <Providers>
+          <Header />
+          {children}
+          <CartSheet />
+        </Providers>
       </body>
     </html>
   );

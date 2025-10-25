@@ -1,75 +1,73 @@
-import { create } from 'zustand';
+// store/cart-store.ts
+import { create } from "zustand";
+import { Product } from "@prisma/client";
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
+export type CartItem = {
+  product: Product;
   quantity: number;
-  image?: string;
-}
+};
 
-interface CartStore {
+type CartState = {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  isOpen: boolean;
+  addItem: (product: Product) => void;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  openCart: () => void;
+  closeCart: () => void;
   getTotalPrice: () => number;
   getTotalItems: () => number;
-}
+};
 
-export const useCartStore = create<CartStore>((set, get) => ({
+export const useCartStore = create<CartState>((set, get) => ({
   items: [],
+  isOpen: false,
+  openCart: () => set({ isOpen: true }),
+  closeCart: () => set({ isOpen: false }),
+  
+  addItem: (product) => {
+    const { items } = get();
+    const existingItem = items.find((item) => item.product.id === product.id);
 
-  addItem: (item) => {
-    set((state) => {
-      const existingItem = state.items.find((i) => i.id === item.id);
-      
-      if (existingItem) {
-        return {
-          items: state.items.map((i) =>
-            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-          ),
-        };
-      }
-      
-      return {
-        items: [...state.items, { ...item, quantity: 1 }],
-      };
+    if (existingItem) {
+      set({
+        items: items.map((item) =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        ),
+      });
+    } else {
+      set({ items: [...items, { product, quantity: 1 }] });
+    }
+    set({ isOpen: true }); // Open cart on add
+  },
+  
+  removeItem: (productId) => {
+    set({
+      items: get().items.filter((item) => item.product.id !== productId),
     });
   },
-
-  removeItem: (id) => {
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== id),
-    }));
-  },
-
-  updateQuantity: (id, quantity) => {
-    if (quantity <= 0) {
-      get().removeItem(id);
-      return;
+  
+  updateQuantity: (productId, quantity) => {
+    if (quantity < 1) {
+      get().removeItem(productId);
+    } else {
+      set({
+        items: get().items.map((item) =>
+          item.product.id === productId ? { ...item, quantity } : item
+        ),
+      });
     }
-    
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      ),
-    }));
-  },
-
-  clearCart: () => {
-    set({ items: [] });
   },
 
   getTotalPrice: () => {
-    return get().items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+    return get().items.reduce((total, item) => {
+      return total + item.product.price * item.quantity;
+    }, 0);
   },
 
   getTotalItems: () => {
     return get().items.reduce((total, item) => total + item.quantity, 0);
-  },
+  }
 }));
